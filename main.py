@@ -54,7 +54,11 @@ if __name__ == "__main__":
 	parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
 	parser.add_argument("--plot_results", action="store_true")      # Generate a simple plot of the latest raw training results
 	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
+	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	args = parser.parse_args()
+
+	if args.dev:
+		args.policy += "-DEV"
 
 	file_name = f"{args.policy}_{args.env}_{args.seed}"
 	print("---------------------------------------")
@@ -98,11 +102,12 @@ if __name__ == "__main__":
 	}
 
 	# Initialize policy
-	if args.policy == "TD3":
+	if args.policy.startswith("TD3"):
 		# Target policy smoothing is scaled wrt the action scale
 		kwargs["policy_noise"] = args.policy_noise * max_action
 		kwargs["noise_clip"] = args.noise_clip * max_action
 		kwargs["policy_freq"] = args.policy_freq
+		kwargs["dev_mode"] = args.dev
 		policy = TD3.TD3(**kwargs)
 	elif args.policy == "OurDDPG":
 		policy = OurDDPG.DDPG(**kwargs)

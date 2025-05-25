@@ -36,7 +36,7 @@ def plot_results(base_name, policy_name="TD3", eval_freq=5000, window_size=10, s
   plt.xlabel("Timesteps")
   plt.ylabel("Ave. Reward")
 
-  policy_names = [policy_name, "OurDDPG"]
+  policy_names = [policy_name, policy_name + "-DEV", "OurDDPG"]
 
   for policy in policy_names:
     try:
