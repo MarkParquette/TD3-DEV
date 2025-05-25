@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import gym
+import gymnasium as gym
 import argparse
 import os
 
@@ -14,14 +14,15 @@ import DDPG
 # A fixed seed is used for the eval environment
 def eval_policy(policy, env_name, seed, eval_episodes=10):
 	eval_env = gym.make(env_name)
-	eval_env.seed(seed + 100)
+	eval_env.reset(seed=seed + 100)
 
 	avg_reward = 0.
 	for _ in range(eval_episodes):
-		state, done = eval_env.reset(), False
-		while not done:
+		state, done, truncated = eval_env.reset(), False, False
+		state = np.array(state[0], dtype=np.float32)
+		while not done and not truncated:
 			action = policy.select_action(np.array(state))
-			state, reward, done, _ = eval_env.step(action)
+			state, reward, done, truncated, _ = eval_env.step(action)
 			avg_reward += reward
 
 	avg_reward /= eval_episodes
@@ -36,7 +37,7 @@ if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
-	parser.add_argument("--env", default="HalfCheetah-v2")          # OpenAI gym environment name
+	parser.add_argument("--env", default="HalfCheetah-v5")          # OpenAI gym environment name
 	parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
 	parser.add_argument("--start_timesteps", default=25e3, type=int)# Time steps initial random policy is used
 	parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 	env = gym.make(args.env)
 
 	# Set seeds
-	env.seed(args.seed)
+	env.reset(seed=args.seed)
 	env.action_space.seed(args.seed)
 	torch.manual_seed(args.seed)
 	np.random.seed(args.seed)
@@ -104,7 +105,8 @@ if __name__ == "__main__":
 	# Evaluate untrained policy
 	evaluations = [eval_policy(policy, args.env, args.seed)]
 
-	state, done = env.reset(), False
+	state, done, truncated = env.reset(), False, False
+	state = np.array(state[0], dtype=np.float32)
 	episode_reward = 0
 	episode_timesteps = 0
 	episode_num = 0
@@ -123,11 +125,10 @@ if __name__ == "__main__":
 			).clip(-max_action, max_action)
 
 		# Perform action
-		next_state, reward, done, _ = env.step(action) 
-		done_bool = float(done) if episode_timesteps < env._max_episode_steps else 0
+		next_state, reward, done, truncated, _ = env.step(action) 
 
 		# Store data in replay buffer
-		replay_buffer.add(state, action, next_state, reward, done_bool)
+		replay_buffer.add(state, action, next_state, reward, done)
 
 		state = next_state
 		episode_reward += reward
@@ -136,11 +137,12 @@ if __name__ == "__main__":
 		if t >= args.start_timesteps:
 			policy.train(replay_buffer, args.batch_size)
 
-		if done: 
+		if done or truncated: 
 			# +1 to account for 0 indexing. +0 on ep_timesteps since it will increment +1 even if done=True
 			print(f"Total T: {t+1} Episode Num: {episode_num+1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
 			# Reset environment
-			state, done = env.reset(), False
+			state, done, truncated = env.reset(), False, False
+			state = np.array(state[0], dtype=np.float32)
 			episode_reward = 0
 			episode_timesteps = 0
 			episode_num += 1 
