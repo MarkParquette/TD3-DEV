@@ -64,7 +64,7 @@ class DDPG(object):
 
 	def train(self, replay_buffer, batch_size=256):
 		# Sample replay buffer 
-		state, action, next_state, reward, not_done = replay_buffer.sample(batch_size)
+		state, action, next_state, reward, not_done, G = replay_buffer.sample(batch_size)
 
 		# Compute the target Q value
 		target_Q = self.critic_target(next_state, self.actor_target(next_state))

@@ -113,7 +113,7 @@ if __name__ == "__main__":
 		policy_file = file_name if args.load_model == "default" else args.load_model
 		policy.load(f"./models/{policy_file}")
 
-	replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
+	replay_buffer = utils.ReplayBuffer(state_dim, action_dim, gamma=args.discount)
 	
 	# Evaluate untrained policy
 	evaluations = [eval_policy(policy, args.env, args.seed)]
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 		next_state, reward, done, truncated, _ = env.step(action) 
 
 		# Store data in replay buffer
-		replay_buffer.add(state, action, next_state, reward, done)
+		replay_buffer.push(state, action, next_state, reward, done, truncated)
 
 		state = next_state
 		episode_reward += reward
