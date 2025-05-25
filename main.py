@@ -13,32 +13,40 @@ from plot_results import plot_results
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
-def eval_policy(policy, env_name, seed, eval_episodes=10):
+def eval_policy(policy, env_name, seed, eval_episodes=10, gamma=1.):
 	eval_env = gym.make(env_name)
 	eval_env.reset(seed=seed + 100)
 
 	avg_reward = 0.
+	disc_reward = 0.
+
 	for _ in range(eval_episodes):
 		state, done, truncated = eval_env.reset(), False, False
 		state = np.array(state[0], dtype=np.float32)
+		episode_step = 0
+
 		while not done and not truncated:
 			action = policy.select_action(np.array(state))
 			state, reward, done, truncated, _ = eval_env.step(action)
+
 			avg_reward += reward
+			disc_reward += reward * pow(gamma, episode_step)
+			episode_step += 1
 
 	avg_reward /= eval_episodes
+	disc_reward /= eval_episodes
 
 	print("---------------------------------------")
-	print(f"Evaluation over {eval_episodes} episodes: {avg_reward:.3f}")
+	print(f"Evaluation over {eval_episodes} episodes: {avg_reward:.3f} ({disc_reward:.3f})")
 	print("---------------------------------------")
-	return avg_reward
+	return avg_reward, disc_reward
 
 
 if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
-	parser.add_argument("--env", default="HalfCheetah-v5")          # OpenAI gym environment name
+	parser.add_argument("--env", default="Walker2d-v5")          # OpenAI gym environment name
 	parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
 	parser.add_argument("--start_timesteps", default=25e3, type=int)# Time steps initial random policy is used
 	parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -121,7 +129,9 @@ if __name__ == "__main__":
 	replay_buffer = utils.ReplayBuffer(state_dim, action_dim, gamma=args.discount)
 	
 	# Evaluate untrained policy
-	evaluations = [eval_policy(policy, args.env, args.seed)]
+	ave_reward, disc_reward = eval_policy(policy, args.env, args.seed, gamma=args.discount)
+	evaluations = [ave_reward]
+	disc_evaluations = [disc_reward]
 
 	state, done, truncated = env.reset(), False, False
 	state = np.array(state[0], dtype=np.float32)
@@ -167,6 +177,9 @@ if __name__ == "__main__":
 
 		# Evaluate episode
 		if (t + 1) % args.eval_freq == 0:
-			evaluations.append(eval_policy(policy, args.env, args.seed))
+			ave_reward, disc_reward = eval_policy(policy, args.env, args.seed, gamma=args.discount)
+			evaluations.append(ave_reward)
+			disc_evaluations.append(disc_reward)
 			np.save(f"./results/{file_name}", evaluations)
+			np.save(f"./results/{file_name}_disc", disc_evaluations)
 			if args.save_model: policy.save(f"./models/{file_name}")
