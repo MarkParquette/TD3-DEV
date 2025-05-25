@@ -9,6 +9,7 @@ import TD3
 import OurDDPG
 import DDPG
 
+from plot_results import plot_results
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
@@ -51,12 +52,24 @@ if __name__ == "__main__":
 	parser.add_argument("--policy_freq", default=2, type=int)       # Frequency of delayed policy updates
 	parser.add_argument("--save_model", action="store_true")        # Save model and optimizer parameters
 	parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
+	parser.add_argument("--plot_results", action="store_true")      # Generate a simple plot of the latest raw training results
+	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
 	args = parser.parse_args()
 
 	file_name = f"{args.policy}_{args.env}_{args.seed}"
 	print("---------------------------------------")
 	print(f"Policy: {args.policy}, Env: {args.env}, Seed: {args.seed}")
 	print("---------------------------------------")
+
+	if args.plot_results:
+		while True:
+			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_ave=False)
+		exit(0)
+
+	if args.plot_ave:
+		while True:
+			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_train=False)
+		exit(0)
 
 	if not os.path.exists("./results"):
 		os.makedirs("./results")

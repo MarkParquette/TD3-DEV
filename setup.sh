@@ -9,6 +9,7 @@ pip install -U pip
 
 pip install numpy torch
 pip install gymnasium "gymnasium[mujoco]"
+pip install seaborn
 
 echo ""
 echo "Run this command to activate Python:"
