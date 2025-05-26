@@ -76,12 +76,12 @@ if __name__ == "__main__":
 
 	if args.plot_results:
 		while True:
-			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_ave=False, discounted=args.plot_discount)
+			plot_results(f"{args.env}_{args.seed}", eval_freq=args.eval_freq, show_ave=False, discounted=args.plot_discount)
 		exit(0)
 
 	if args.plot_ave:
 		while True:
-			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_train=False, discounted=args.plot_discount)
+			plot_results(f"{args.env}_{args.seed}", eval_freq=args.eval_freq, show_train=False, discounted=args.plot_discount)
 		exit(0)
 
 	if not os.path.exists("./results"):
@@ -118,7 +118,8 @@ if __name__ == "__main__":
 		kwargs["policy_freq"] = args.policy_freq
 		kwargs["dev_mode"] = args.dev
 		policy = TD3.TD3(**kwargs)
-	elif args.policy == "OurDDPG":
+	elif args.policy.startswith("OurDDPG"):
+		kwargs["dev_mode"] = args.dev
 		policy = OurDDPG.DDPG(**kwargs)
 	elif args.policy == "DDPG":
 		policy = DDPG.DDPG(**kwargs)

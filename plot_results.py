@@ -30,13 +30,13 @@ def sliding_average(data, window_size):
     # mode='valid' returns only the parts where the window fully overlaps with the input
     return np.convolve(data, weights, mode='valid')
 
-def plot_results(base_name, policy_name="TD3", eval_freq=5000, window_size=10, show_train=True, show_ave=True, discounted=False):
+def plot_results(base_name, eval_freq=5000, window_size=10, show_train=True, show_ave=True, discounted=False):
   plt.figure(figsize = (12, 7))
-  plt.title(f"{base_name}")
+  plt.title(f"{base_name} {"(Discounted)" if discounted else ""}")
   plt.xlabel("Timesteps")
-  plt.ylabel("Ave. Reward")
+  plt.ylabel(f"Ave. Reward {"(Discounted)" if discounted else ""}")
 
-  policy_names = [policy_name, policy_name + "-DEV", "OurDDPG"]
+  policy_names = ["TD3", "TD3-DEV", "OurDDPG", "OurDDPG-DEV"]
 
   for policy in policy_names:
     try:
