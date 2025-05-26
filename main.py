@@ -46,7 +46,7 @@ if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
-	parser.add_argument("--env", default="Walker2d-v5")          # OpenAI gym environment name
+	parser.add_argument("--env", default="HalfCheetah-v5")          # OpenAI gym environment name
 	parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
 	parser.add_argument("--start_timesteps", default=25e3, type=int)# Time steps initial random policy is used
 	parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -62,6 +62,7 @@ if __name__ == "__main__":
 	parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
 	parser.add_argument("--plot_results", action="store_true")      # Generate a simple plot of the latest raw training results
 	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
+	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	args = parser.parse_args()
 
@@ -75,12 +76,12 @@ if __name__ == "__main__":
 
 	if args.plot_results:
 		while True:
-			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_ave=False)
+			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_ave=False, discounted=args.plot_discount)
 		exit(0)
 
 	if args.plot_ave:
 		while True:
-			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_train=False)
+			plot_results(f"{args.env}_{args.seed}", policy_name=args.policy, eval_freq=args.eval_freq, show_train=False, discounted=args.plot_discount)
 		exit(0)
 
 	if not os.path.exists("./results"):
