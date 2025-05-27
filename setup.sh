@@ -8,7 +8,7 @@ source .venv/bin/activate
 pip install -U pip
 
 pip install numpy torch
-pip install gymnasium "gymnasium[mujoco]"
+pip install gymnasium "gymnasium[mujoco]" "gymnasium[box2d]"
 pip install seaborn
 
 echo ""

@@ -44,7 +44,7 @@ class Critic(nn.Module):
 
 
 class DDPG(object):
-	def __init__(self, state_dim, action_dim, max_action, discount=0.99, tau=0.005):
+	def __init__(self, state_dim, action_dim, max_action, discount=0.99, tau=0.005, dev_mode=False):
 		self.actor = Actor(state_dim, action_dim, max_action).to(device)
 		self.actor_target = copy.deepcopy(self.actor)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=3e-4)
@@ -55,7 +55,7 @@ class DDPG(object):
 
 		self.discount = discount
 		self.tau = tau
-
+		self.dev_mode = dev_mode
 
 	def select_action(self, state):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
