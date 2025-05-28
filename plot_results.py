@@ -32,15 +32,15 @@ def sliding_average(data, window_size):
 
 def plot_results(base_name, eval_freq=5000, window_size=10, show_train=True, show_ave=True, discounted=False):
   plt.figure(figsize = (12, 7))
-  plt.title(f"{base_name} {"(Discounted)" if discounted else ""}")
+  plt.title(f'{base_name} {"(Discounted)" if discounted else ""}')
   plt.xlabel("Timesteps")
-  plt.ylabel(f"Ave. Reward {"(Discounted)" if discounted else ""}")
+  plt.ylabel(f'Ave. Reward {"(Discounted)" if discounted else ""}')
 
   policy_names = ["TD3", "TD3-DEV", "OurDDPG", "OurDDPG-DEV"]
 
   for policy in policy_names:
     try:
-      data = np.load(f"./results/{policy}_{base_name}{"_disc" if discounted else ""}.npy")
+      data = np.load(f'./results/{policy}_{base_name}{"_disc" if discounted else ""}.npy')
     except:
       continue
     
