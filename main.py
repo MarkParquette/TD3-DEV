@@ -8,6 +8,7 @@ import utils
 import TD3
 import OurDDPG
 import DDPG
+import DDQN
 
 from plot_results import plot_results
 from reports import gen_detailed_report
@@ -46,8 +47,8 @@ def eval_policy(policy, env_name, seed, eval_episodes=10, gamma=1.):
 if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
-	parser.add_argument("--env", default="Hopper-v5")          # OpenAI gym environment name
+	parser.add_argument("--policy", default="DDQN")                  # Policy name (TD3, DDPG or OurDDPG)
+	parser.add_argument("--env", default="LunarLander-v3")          # OpenAI gym environment name
 	parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
 	parser.add_argument("--start_timesteps", default=25e3, type=int)# Time steps initial random policy is used
 	parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -71,8 +72,8 @@ if __name__ == "__main__":
 
 	if args.gen_report:
 		gen_detailed_report(
-			policies=["TD3", "TD3-DEV"],
-			envs=["LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
+			policies=["TD3", "TD3-DEV", "DDQN", "DDQN-DEV"],
+			envs=["LunarLander-v3", "LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
 			seed=range(10),
 			path=args.report_path
 		)
@@ -111,8 +112,16 @@ if __name__ == "__main__":
 	np.random.seed(args.seed)
 	
 	state_dim = env.observation_space.shape[0]
-	action_dim = env.action_space.shape[0] 
-	max_action = float(env.action_space.high[0])
+	if type(env.action_space) == gym.spaces.Discrete:
+		discrete_action = True
+		action_dim = env.action_space.n
+		max_action = env.action_space.n + env.action_space.start - 1
+		#print(f"Discrete action space with {action_dim} actions, max action: {max_action}")
+		#exit(0)
+	else:
+		discrete_action = False
+		action_dim = env.action_space.shape[0] 
+		max_action = float(env.action_space.high[0])
 
 	kwargs = {
 		"state_dim": state_dim,
@@ -130,6 +139,13 @@ if __name__ == "__main__":
 		kwargs["policy_freq"] = args.policy_freq
 		kwargs["dev_mode"] = args.dev
 		policy = TD3.TD3(**kwargs)
+	elif args.policy.startswith("DDQN"):
+		# Target policy smoothing is scaled wrt the action scale
+		kwargs["policy_noise"] = args.policy_noise * max_action
+		kwargs["noise_clip"] = args.noise_clip * max_action
+		kwargs["policy_freq"] = args.policy_freq
+		kwargs["dev_mode"] = args.dev
+		policy = DDQN.DDQN(**kwargs)
 	elif args.policy.startswith("OurDDPG"):
 		kwargs["dev_mode"] = args.dev
 		policy = OurDDPG.DDPG(**kwargs)
@@ -140,7 +156,7 @@ if __name__ == "__main__":
 		policy_file = file_name if args.load_model == "default" else args.load_model
 		policy.load(f"./models/{policy_file}")
 
-	replay_buffer = utils.ReplayBuffer(state_dim, action_dim, gamma=args.discount)
+	replay_buffer = utils.ReplayBuffer(state_dim, action_dim if not discrete_action else 1, gamma=args.discount)
 	
 	# Evaluate untrained policy
 	ave_reward, disc_reward = eval_policy(policy, args.env, args.seed, gamma=args.discount)
@@ -161,10 +177,13 @@ if __name__ == "__main__":
 		if t < args.start_timesteps:
 			action = env.action_space.sample()
 		else:
-			action = (
-				policy.select_action(np.array(state))
-				+ np.random.normal(0, max_action * args.expl_noise, size=action_dim)
-			).clip(-max_action, max_action)
+			if discrete_action:
+				action = policy.select_action(np.array(state), noisy=True)
+			else:
+				action = (
+					policy.select_action(np.array(state))
+					+ np.random.normal(0, max_action * args.expl_noise, size=action_dim)
+				).clip(-max_action, max_action)
 
 		# Perform action
 		next_state, reward, done, truncated, _ = env.step(action) 

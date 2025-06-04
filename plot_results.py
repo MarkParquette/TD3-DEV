@@ -36,7 +36,7 @@ def plot_results(base_name, eval_freq=5000, window_size=10, show_train=True, sho
   plt.xlabel("Timesteps")
   plt.ylabel(f'Ave. Reward {"(Discounted)" if discounted else ""}')
 
-  policy_names = ["TD3", "TD3-DEV", "OurDDPG", "OurDDPG-DEV"]
+  policy_names = ["TD3", "TD3-DEV", "DDQN", "DDQN-DEV", "OurDDPG", "OurDDPG-DEV"]
 
   for policy in policy_names:
     try:
