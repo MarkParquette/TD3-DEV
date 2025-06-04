@@ -107,7 +107,7 @@ class TD3(object):
 		self.total_it += 1
 
 		# Sample replay buffer 
-		state, action, next_state, reward, not_done, G = replay_buffer.sample(batch_size)
+		state, action, next_state, reward, not_done, G, G_est = replay_buffer.sample(batch_size)
 
 		with torch.no_grad():
 			# Select action according to policy and add clipped noise

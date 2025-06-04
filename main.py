@@ -10,6 +10,7 @@ import OurDDPG
 import DDPG
 
 from plot_results import plot_results
+from reports import gen_detailed_report
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
-	parser.add_argument("--env", default="HalfCheetah-v5")          # OpenAI gym environment name
+	parser.add_argument("--env", default="Hopper-v5")          # OpenAI gym environment name
 	parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
 	parser.add_argument("--start_timesteps", default=25e3, type=int)# Time steps initial random policy is used
 	parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -64,7 +65,18 @@ if __name__ == "__main__":
 	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
 	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
+	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
+	parser.add_argument("--report_path", default="./baseline_results") # Path to save the report results
 	args = parser.parse_args()
+
+	if args.gen_report:
+		gen_detailed_report(
+			policies=["TD3", "TD3-DEV"],
+			envs=["LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
+			seed=range(10),
+			path=args.report_path
+		)
+		exit(0)
 
 	if args.dev:
 		args.policy += "-DEV"
@@ -169,7 +181,7 @@ if __name__ == "__main__":
 
 		if done or truncated: 
 			# +1 to account for 0 indexing. +0 on ep_timesteps since it will increment +1 even if done=True
-			print(f"Total T: {t+1} Episode Num: {episode_num+1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
+			print(f"Total T: {t+1} Episode Num: {episode_num+1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}\t{'Done' if done else 'Truncated'}")
 			# Reset environment
 			state, done, truncated = env.reset(), False, False
 			state = np.array(state[0], dtype=np.float32)

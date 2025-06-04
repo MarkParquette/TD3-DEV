@@ -16,6 +16,7 @@ class ReplayBuffer(object):
 		self.reward = np.zeros((max_size, 1))
 		self.not_done = np.zeros((max_size, 1))
 		self.g_return = np.zeros((max_size, 1))
+		self.g_est = np.zeros((max_size, 1))
 
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -47,16 +48,17 @@ class ReplayBuffer(object):
 					
 				G = r + self.gamma * G
 
-				self.add(s, a, ns, r, float(d), G)
+				self.add(s, a, ns, r, float(d), G, g_est=truncated)
 
 
-	def add(self, state, action, next_state, reward, done, g_return):
+	def add(self, state, action, next_state, reward, done, g_return, g_est):
 		self.state[self.ptr] = state
 		self.action[self.ptr] = action
 		self.next_state[self.ptr] = next_state
 		self.reward[self.ptr] = reward
 		self.not_done[self.ptr] = 1. - done
 		self.g_return[self.ptr] = g_return
+		self.g_est[self.ptr] = float(g_est)
 
 		self.ptr = (self.ptr + 1) % self.max_size
 		self.size = min(self.size + 1, self.max_size)
@@ -71,5 +73,6 @@ class ReplayBuffer(object):
 			torch.FloatTensor(self.next_state[ind]).to(self.device),
 			torch.FloatTensor(self.reward[ind]).to(self.device),
 			torch.FloatTensor(self.not_done[ind]).to(self.device),
-			torch.FloatTensor(self.g_return[ind]).to(self.device)
+			torch.FloatTensor(self.g_return[ind]).to(self.device),
+			torch.FloatTensor(self.g_est[ind]).to(self.device)
 		)
