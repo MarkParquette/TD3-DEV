@@ -9,23 +9,6 @@ import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class Actor(nn.Module):
-	def __init__(self, state_dim, action_dim, max_action):
-		super(Actor, self).__init__()
-
-		self.l1 = nn.Linear(state_dim, 256)
-		self.l2 = nn.Linear(256, 256)
-		self.l3 = nn.Linear(256, action_dim)
-		
-		self.max_action = max_action
-		
-
-	def forward(self, state):
-		a = F.relu(self.l1(state))
-		a = F.relu(self.l2(a))
-		return self.max_action * torch.tanh(self.l3(a))
-
-
 class DiscreteCritic(nn.Module):
 	def __init__(self, state_dim, action_dim):
 		super(DiscreteCritic, self).__init__()
@@ -57,11 +40,11 @@ class DDQN(object):
 	
 		self.critic = DiscreteCritic(state_dim, action_dim).to(device)
 		self.critic_target = copy.deepcopy(self.critic)
-		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
+		self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=1e-3)
 
 		self.epsilon_start = 1.0 #epsilon_start
 		self.epsilon_end = 0.01 #epsilon_end
-		self.decay_rate = 5000
+		self.decay_rate = 50_000
 		self.epsilon = self.epsilon_start
 
 		self.max_action = max_action
@@ -99,10 +82,6 @@ class DDQN(object):
 			target_Q = self.critic_target(next_state).gather(1, next_actions)
 			target_Q = reward + not_done * self.discount * target_Q
 
-			# Apply periodic adjustments to the target Q value based on Monte Carlo returns
-			if self.dev_mode and self.total_it % self.policy_freq == 0:
-				target_Q = torch.max(target_Q, G) * (1 - G_est) + target_Q * G_est
-
 		# Get current Q estimates
 		current_Q = self.critic(state).gather(1, action.to(torch.long))
 
@@ -116,11 +95,11 @@ class DDQN(object):
 
 		# Update the frozen target models
 		if self.total_it % 1000 == 0:
-			for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-				target_param.data.copy_(param.data)#+ 0. * target_param.data)
+			self.critic_target.load_state_dict(self.critic.state_dict())
 
 		# Update epsilon for exploration
 		self.epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-1 * self.total_it / self.decay_rate)
+
 
 	def save(self, filename):
 		torch.save(self.critic.state_dict(), filename + "_critic")

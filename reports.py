@@ -17,13 +17,13 @@ def read_results(policy, env, seed, discounted=False, path='./baseline_results')
 def gen_detailed_report(
     policies=["TD3", "TD3-DEV", "DDQN", "DDQN-DEV"],
     envs=["LunarLander-v3", "LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
-    seed=range(10),
+    seeds=range(10),
     path='./baseline_results'
 ):
     print("Seed,                       Env,     Policy,    Mean,     Max,     Ave,     Max,   (Mean),    (Max),    (Ave),    (Max),  Count")
 
     for e in envs:
-        for s in seed:
+        for s in seeds:
             for p in policies:
                 data = read_results(p, e, s, discounted=False, path=path)
                 disc_data = read_results(p, e, s, discounted=True, path=path)

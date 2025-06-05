@@ -67,20 +67,23 @@ if __name__ == "__main__":
 	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
-	parser.add_argument("--report_path", default="./baseline_results") # Path to save the report results
+	parser.add_argument("--report_path", default="./results")       # Path to the input results for the detailed report
 	args = parser.parse_args()
 
 	if args.gen_report:
 		gen_detailed_report(
-			policies=["TD3", "TD3-DEV", "DDQN", "DDQN-DEV"],
-			envs=["LunarLander-v3", "LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
-			seed=range(10),
+			policies=["TD3", "TD3-DEV", "DDQN", "DDQN-DEV", "DDQN-DEV-ALT"],
+			envs=["Acrobot-v1", "CartPole-v1", "LunarLander-v3", "LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
+			seeds=range(10),
 			path=args.report_path
 		)
 		exit(0)
 
 	if args.dev:
 		args.policy += "-DEV"
+
+	if args.policy.startswith("DDQN"):
+		args.batch_size = 64
 
 	file_name = f"{args.policy}_{args.env}_{args.seed}"
 	print("---------------------------------------")
