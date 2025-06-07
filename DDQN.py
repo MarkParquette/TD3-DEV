@@ -59,7 +59,7 @@ class DDQN(object):
 
 
 	def select_action(self, state, noisy=False):
-		if noisy and random.random() < self.epsilon:
+		if noisy and np.random.random() < self.epsilon:
 			action = np.random.randint(0, self.max_action + 1)
 		else:
 			with torch.no_grad():
