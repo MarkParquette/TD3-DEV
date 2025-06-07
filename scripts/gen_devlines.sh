@@ -3,11 +3,17 @@
 # Script to reproduce results
 
 for ((i=0;i<10;i+=1))
-do 
+do
 	python main.py \
 	--dev \
 	--policy "TD3" \
-	--env "HalfCheetah-v5" \
+	--env "BipedalWalker-v3" \
+	--seed $i
+
+	python main.py \
+	--dev \
+	--policy "TD3" \
+	--env "LunarLanderContinuous-v3" \
 	--seed $i
 
 	python main.py \
@@ -45,13 +51,6 @@ do
 	--dev \
 	--policy "TD3" \
 	--env "InvertedDoublePendulum-v5" \
-	--seed $i \
-	--start_timesteps 1000
-
-	python main.py \
-	--dev \
-	--policy "TD3" \
-	--env "Reacher-v5" \
 	--seed $i \
 	--start_timesteps 1000
 done

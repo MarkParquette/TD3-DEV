@@ -14,13 +14,8 @@ def read_results(policy, env, seed, discounted=False, path='./baseline_results')
 
     return data
 
-def gen_detailed_report(
-    policies=["TD3", "TD3-DEV", "DDQN", "DDQN-DEV"],
-    envs=["LunarLander-v3", "LunarLanderContinuous-v3", "BipedalWalker-v3", "Hopper-v5", "Ant-v5"],
-    seeds=range(10),
-    path='./baseline_results'
-):
-    print("Seed,                       Env,     Policy,    Mean,     Max,     Ave,     Max,   (Mean),    (Max),    (Ave),    (Max),  Count")
+def gen_detailed_report(policies, envs, seeds, path):
+    print("Seed,                       Env,     Policy,     Mean,      Max,      Ave,      Max,   (Mean),    (Max),    (Ave),    (Max),  Count")
 
     for e in envs:
         for s in seeds:
@@ -45,4 +40,4 @@ def gen_detailed_report(
                 disc_ave_mean = np.mean(d_sa)
                 disc_ave_max = np.max(d_sa)
                 
-                print(f"{s:>4}, {e:>25}, {p:>10}, {ud_mean:>7.2f}, {ud_max:>7.2f}, {ave_mean:>7.2f}, {ave_max:>7.2f}, {disc_mean:>8.2f}, {disc_max:>8.2f}, {disc_mean:>8.2f}, {disc_max:>8.2f}, {len(data):>6}")
+                print(f"{s:>4}, {e:>25}, {p:>10}, {ud_mean:>8.2f}, {ud_max:>8.2f}, {ave_mean:>8.2f}, {ave_max:>8.2f}, {disc_mean:>8.2f}, {disc_max:>8.2f}, {disc_ave_mean:>8.2f}, {disc_ave_max:>8.2f}, {len(data):>6}")
