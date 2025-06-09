@@ -11,7 +11,7 @@ import DDPG
 import DDQN
 
 from plot_results import plot_results
-from reports import gen_detailed_report
+from reports import gen_detailed_report, export_results
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
@@ -67,7 +67,8 @@ if __name__ == "__main__":
 	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
-	parser.add_argument("--report_path", default="./results")       # Path to the input results for the detailed report
+	parser.add_argument("--results_path", default="./results")      # Path to the input results for the detailed report
+	parser.add_argument("--export_results", action="store_true")    # Export all results in CSV format
 	args = parser.parse_args()
 
 	if args.gen_report:
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 				"InvertedPendulum-v5",
 				"InvertedDoublePendulum-v5"],
 			seeds=range(10),
-			path=args.report_path
+			path=args.results_path
 		)
 		exit(0)
 
@@ -93,6 +94,10 @@ if __name__ == "__main__":
 
 	if args.policy.startswith("DDQN"):
 		args.batch_size = 64
+
+	if args.export_results:
+		export_results(args.results_path, args.discount, args.eval_freq)
+		exit(0)
 
 	file_name = f"{args.policy}_{args.env}_{args.seed}"
 	print("---------------------------------------")
