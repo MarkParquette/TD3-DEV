@@ -15,8 +15,8 @@ from reports import gen_detailed_report, export_results
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
-def eval_policy(policy, env_name, seed, eval_episodes=10, gamma=1.):
-	eval_env = gym.make(env_name)
+def eval_policy(policy, env_name, seed, eval_episodes=10, gamma=1., render_mode=None):
+	eval_env = gym.make(env_name, render_mode=render_mode)
 	eval_env.reset(seed=seed + 100)
 
 	avg_reward = 0.
@@ -34,6 +34,8 @@ def eval_policy(policy, env_name, seed, eval_episodes=10, gamma=1.):
 			avg_reward += reward
 			disc_reward += reward * pow(gamma, episode_step)
 			episode_step += 1
+
+	if render_mode is not None: eval_env.close()
 
 	avg_reward /= eval_episodes
 	disc_reward /= eval_episodes
@@ -69,6 +71,7 @@ if __name__ == "__main__":
 	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
 	parser.add_argument("--results_path", default="./results")      # Path to the input results for the detailed report
 	parser.add_argument("--export_results", action="store_true")    # Export all results in CSV format
+	parser.add_argument("--demo", action="store_true")              # Execute the latest env model as a demo in "human" render mode
 	args = parser.parse_args()
 
 	if args.gen_report:
@@ -172,6 +175,10 @@ if __name__ == "__main__":
 	if args.load_model != "":
 		policy_file = file_name if args.load_model == "default" else args.load_model
 		policy.load(f"./models/{policy_file}")
+
+	if args.demo:
+		eval_policy(policy=policy, env_name=args.env, seed=args.seed, gamma=args.discount, eval_episodes=1, render_mode="human")
+		exit(0)
 
 	replay_buffer = utils.ReplayBuffer(state_dim, action_dim if not discrete_action else 1, gamma=args.discount)
 	
