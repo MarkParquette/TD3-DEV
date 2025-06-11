@@ -11,7 +11,7 @@ import DDPG
 import DDQN
 
 from plot_results import plot_results
-from reports import gen_detailed_report, export_results
+from reports import gen_detailed_report, export_results, gen_summary_report
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
@@ -69,6 +69,7 @@ if __name__ == "__main__":
 	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
+	parser.add_argument("--gen_summary", action="store_true")       # Generate a summary report of the results
 	parser.add_argument("--results_path", default="./results")      # Path to the input results for the detailed report
 	parser.add_argument("--export_results", action="store_true")    # Export all results in CSV format
 	parser.add_argument("--demo", action="store_true")              # Execute the latest env model as a demo in "human" render mode
@@ -88,6 +89,23 @@ if __name__ == "__main__":
 				"InvertedPendulum-v5",
 				"InvertedDoublePendulum-v5"],
 			seeds=range(10),
+			path=args.results_path
+		)
+		exit(0)
+
+	if args.gen_summary:
+		gen_summary_report(
+			policies=["TD3", "TD3-DEV"],
+			envs=["BipedalWalker-v3",
+		 		"LunarLanderContinuous-v3",
+				"Humanoid-v5",
+				"HalfCheetah-v5", 
+				"Walker2d-v5",
+				"Hopper-v5",
+				"Ant-v5",
+				"Reacher-v5",
+				"InvertedPendulum-v5",
+				"InvertedDoublePendulum-v5"],
 			path=args.results_path
 		)
 		exit(0)
