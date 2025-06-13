@@ -66,6 +66,7 @@ if __name__ == "__main__":
 	parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
 	parser.add_argument("--plot_results", action="store_true")      # Generate a simple plot of the latest raw training results
 	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
+	parser.add_argument("--plot_summary", action="store_true")      # Plot the summary (Ave) results
 	parser.add_argument("--plot_discount", action="store_true")     # Flag for plot function to show discounted returns instead of total returns
 	parser.add_argument("--dev", action="store_true")               # Flag to enable development mode features
 	parser.add_argument("--gen_report", action="store_true")        # Generate a detailed report of the results
@@ -133,6 +134,11 @@ if __name__ == "__main__":
 	if args.plot_ave:
 		while True:
 			plot_results(f"{args.env}_{args.seed}", eval_freq=args.eval_freq, show_train=False, discounted=args.plot_discount)
+		exit(0)
+
+	if args.plot_summary:
+		while True:
+			plot_results(f"{args.env}_Ave", eval_freq=args.eval_freq, show_train=False, discounted=args.plot_discount)
 		exit(0)
 
 	if not os.path.exists("./results"):
