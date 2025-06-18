@@ -64,6 +64,8 @@ if __name__ == "__main__":
 	parser.add_argument("--policy_freq", default=2, type=int)       # Frequency of delayed policy updates
 	parser.add_argument("--save_model", action="store_true")        # Save model and optimizer parameters
 	parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
+	parser.add_argument("--save_buffer", action="store_true")       # Save the experience replay buffer
+	parser.add_argument("--load_buffer", default="")                # Replay buffer load file name, "" doesn't load, "default" uses file_name
 	parser.add_argument("--plot_results", action="store_true")      # Generate a simple plot of the latest raw training results
 	parser.add_argument("--plot_ave", action="store_true")          # Generate a simple plot of the latest average training results
 	parser.add_argument("--plot_summary", action="store_true")      # Plot the summary (Ave) results
@@ -147,6 +149,9 @@ if __name__ == "__main__":
 	if args.save_model and not os.path.exists("./models"):
 		os.makedirs("./models")
 
+	if args.save_buffer and not os.path.exists("./buffers"):
+		os.makedirs("./buffers")
+
 	env = gym.make(args.env)
 
 	# Set seeds
@@ -204,7 +209,13 @@ if __name__ == "__main__":
 		eval_policy(policy=policy, env_name=args.env, seed=args.seed, gamma=args.discount, eval_episodes=1, render_mode="human")
 		exit(0)
 
-	replay_buffer = utils.ReplayBuffer(state_dim, action_dim if not discrete_action else 1, gamma=args.discount)
+	if args.load_buffer != "":
+		buffer_file = file_name if args.load_buffer == "default" else args.load_buffer
+		replay_buffer = utils.ReplayBuffer.load(f"./buffers/{buffer_file}")
+		assert(replay_buffer != None)
+		print(f"Replay buffer loaded with size {replay_buffer.size}")
+	else:
+		replay_buffer = utils.ReplayBuffer(state_dim, action_dim if not discrete_action else 1, gamma=args.discount)
 	
 	# Evaluate untrained policy
 	ave_reward, disc_reward = eval_policy(policy, args.env, args.seed, gamma=args.discount)
@@ -264,3 +275,4 @@ if __name__ == "__main__":
 			np.save(f"./results/{file_name}", evaluations)
 			np.save(f"./results/{file_name}_disc", disc_evaluations)
 			if args.save_model: policy.save(f"./models/{file_name}")
+			if args.save_buffer: replay_buffer.save(f"./buffers/{file_name}")

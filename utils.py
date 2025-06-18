@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+import pickle
 
 class ReplayBuffer(object):
 	def __init__(self, state_dim, action_dim, max_size=int(1e6), gamma=None):
@@ -76,3 +76,15 @@ class ReplayBuffer(object):
 			torch.FloatTensor(self.g_return[ind]).to(self.device),
 			torch.FloatTensor(self.g_est[ind]).to(self.device)
 		)
+	
+	def save(self, filename):
+		with open(filename, "wb") as f:
+			pickle.dump(self, f)
+
+
+	def load(filename):
+		with open(filename, "rb") as f:
+			loaded_buffer = pickle.load(f)
+			return loaded_buffer
+		
+		return None
